@@ -3,24 +3,19 @@ import 'dart:typed_data';
 
 import 'package:floor_issue/issue/database.dart';
 import 'package:floor_issue/issue/task.dart';
-import 'package:floor_issue/issue/task_dao.dart';
 import 'package:flutter/material.dart';
+
+late final AppDatabase database;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final database =
-      await $FloorAppDatabase.databaseBuilder('flutter_database.db').build();
-  final dao = database.taskDao;
-  runApp(MyApp(
-    taskDao: dao,
-  ));
+  database = await $FloorAppDatabase.databaseBuilder('flutter_database.db').build();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final TaskDao taskDao;
 
-  const MyApp({required this.taskDao, super.key});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -30,15 +25,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(taskDao: taskDao, title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  final TaskDao taskDao;
-
-  const MyHomePage({super.key, required this.taskDao, required this.title});
+  const MyHomePage({super.key, required this.title});
 
   final String title;
 
@@ -47,6 +40,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late final taskDao = database.taskDao;
   final int taskId = 1;
 
   @override
@@ -64,9 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   String source = 'hello';
                   List<int> list = utf8.encode(source);
                   Uint8List data = Uint8List.fromList(list);
-                  await widget.taskDao.insertTask(Task(taskId, data));
+                  await taskDao.insertTask(Task(taskId, data));
 
-                  widget.taskDao.findTaskById(taskId).then((value) {
+                  taskDao.findTaskById(taskId).then((value) {
                     print(
                         'insertTask ${value?.id}, ${utf8.decode(value?.data ?? Uint8List(0))}');
                   });
@@ -79,9 +73,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   String source = 'new_hello';
                   List<int> list = utf8.encode(source);
                   Uint8List data = Uint8List.fromList(list);
-                  await widget.taskDao.updateData(data, taskId);
-
-                  widget.taskDao.findTaskById(taskId).then((value) {
+                  await taskDao.rawUpdateData(data, taskId);
+                  taskDao.findTaskById(taskId).then((value) {
                     print(
                         'updateTask ${value?.id}, ${utf8.decode(value?.data ?? Uint8List(0))}');
                   });
