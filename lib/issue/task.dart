@@ -1,5 +1,6 @@
+import 'dart:typed_data';
+
 import 'package:floor/floor.dart';
-import 'package:flutter/services.dart';
 
 @Entity(tableName: Task.tableName)
 class Task {
